@@ -3,17 +3,13 @@
 
 from urllib.request import urlopen, build_opener, Request
 import xml.etree.ElementTree as ET
-from xml.etree.ElementTree import parse
 import json
 
 def xml_to_json():
 
     # --- General Parameters --- 
     xml_dict = {"members": None} # we'll store all data here
-    xml_list = []
-    elem_dict = {"firstName": None, "lastName": None, "fullName": None,
-                 "chartId": None, "mobile": None, "address": None} # a dict for each element
-    address_dict = {"street": None, "city": None, "state": None, "postal": None} # dict for the address node of each element
+    xml_list = []   
 
     # --- Connection Parameters ---    
     target_url = 'https://www.senate.gov/general/contact_information/senators_cfm.xml'
@@ -33,14 +29,23 @@ def xml_to_json():
         try:
             print("Processing downloaded data...", end="")
             for elem in root.findall("member"):
+                elem_dict = {} # a dict for each element
+                address_dict = {} # dict for the address node of each element
                 elem_dict["lastName"] = elem.find("last_name").text
                 elem_dict["firstName"] = elem.find("first_name").text
+                elem_dict["mobile"] = elem.find("phone").text
                 elem_dict["fullName"] = elem_dict["firstName"] + " " + elem_dict["lastName"]
                 elem_dict["chartId"] = elem.find("bioguide_id").text
-                address_dict["street"] = elem.find("address").text
-                address_dict["city"] = "Washington DC"
+                full_address = elem.find("address").text.split()
+                
+                address_dict["street"] = " ".join(full_address[0:2])
+                
+                # WARNING: This assumes that the City's name is composed of TWO WORDS. It will
+                # present faulty city names otherwise.
+                address_dict["city"] = " ".join(full_address[-3:-1])
+
                 address_dict["state"] = elem.find("state").text
-                address_dict["postal"] = "20510"
+                address_dict["postal"] = full_address[-1]
                 elem_dict["address"] = [address_dict]
                 xml_list.append(elem_dict)
             xml_dict["members"] = xml_list
@@ -48,14 +53,17 @@ def xml_to_json():
             xml_json = json.loads(xml_json_str)
             print("Done", end="\n\n")
             print("Generated JSON: ")
-            print(xml_json)
+            return xml_json
         except Exception as e:
             print("\nAn Error occurred while processing the XML Data: ", str(e))
+            return None
         
     except Exception as e:
         print("\nAn error Occurred while trying to retrieve data from API: ", str(e))
         
 if __name__ == '__main__':
-    xml_to_json()
+    json_str = xml_to_json()
+    if json_str is not None:
+        print(json_str)
 
 
