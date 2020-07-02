@@ -37,15 +37,24 @@ def xml_to_json():
                 elem_dict["fullName"] = elem_dict["firstName"] + " " + elem_dict["lastName"]
                 elem_dict["chartId"] = elem.find("bioguide_id").text
                 full_address = elem.find("address").text.split()
-                
+
+                # WARNING: This is error prone and takes advantage of the fact that the addresses are
+                # all the same. Adding addresses with another configuration will create faulty addresses.
                 address_dict["street"] = " ".join(full_address[0:2])
                 
-                # WARNING: This assumes that the City's name is composed of TWO WORDS. It will
-                # present faulty city names otherwise.
-                address_dict["city"] = " ".join(full_address[-3:-1])
+                # WARNING: This is error prone and takes advantage of the fact that the addresses are
+                # all the same. Adding addresses with another configuration will create faulty city names.
+                # I added a check for city names composed with either 1 or 2 words.
+                if len(full_address) < 8:
+                    address_dict["city"] = " ".join(full_address[-2])
+                else:
+                    address_dict["city"] = " ".join(full_address[-3:-1])
 
                 address_dict["state"] = elem.find("state").text
+                # WARNING: This is error prone and takes advantage of the fact that the addresses are
+                # all the same. Adding addresses with another configuration will create invalid postal codes.
                 address_dict["postal"] = full_address[-1]
+
                 elem_dict["address"] = [address_dict]
                 xml_list.append(elem_dict)
             xml_dict["members"] = xml_list
