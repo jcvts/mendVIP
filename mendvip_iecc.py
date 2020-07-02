@@ -62,7 +62,7 @@ def xml_to_json():
                 if len(full_address) > 1:
                     address_dict["postal"] = full_address[-1]
                 else:
-                    address_dict["street"] = ""
+                    address_dict["postal"] = ""
 
                 elem_dict["address"] = [address_dict]
                 xml_list.append(elem_dict)
