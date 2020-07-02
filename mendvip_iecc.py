@@ -40,20 +40,29 @@ def xml_to_json():
 
                 # WARNING: This is error prone and takes advantage of the fact that the addresses are
                 # all the same. Adding addresses with another configuration will create faulty addresses.
-                address_dict["street"] = " ".join(full_address[0:2])
+                # Added some small border checks
+                if len(full_address) > 2:
+                    address_dict["street"] = " ".join(full_address[0:2])
+                else:
+                    address_dict["street"] = ""
                 
                 # WARNING: This is error prone and takes advantage of the fact that the addresses are
                 # all the same. Adding addresses with another configuration will create faulty city names.
                 # I added a check for city names composed with either 1 or 2 words.
-                if len(full_address) < 8:
+                if len(full_address) in range(2, 8):
                     address_dict["city"] = " ".join(full_address[-2])
+                elif len(full_address) < 2:
+                    address_dict["city"] = ""
                 else:
                     address_dict["city"] = " ".join(full_address[-3:-1])
 
                 address_dict["state"] = elem.find("state").text
                 # WARNING: This is error prone and takes advantage of the fact that the addresses are
                 # all the same. Adding addresses with another configuration will create invalid postal codes.
-                address_dict["postal"] = full_address[-1]
+                if len(full_address) > 1:
+                    address_dict["postal"] = full_address[-1]
+                else:
+                    address_dict["street"] = ""
 
                 elem_dict["address"] = [address_dict]
                 xml_list.append(elem_dict)
